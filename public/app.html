@@ -95,18 +95,18 @@
                         'Authorization': `Bearer ${authToken}`
                     },
                     body: JSON.stringify({
-                        filter: [
-                            {
-                                operator: 'greaterThanOrEqual',
-                                value: getWeekStartDate(),
-                                objectParameterKey: 'from_date_time'
-                            },
-                            {
-                                operator: 'lessThanOrEqual',
-                                value: getWeekEndDate(),
-                                objectParameterKey: 'from_date_time'
-                            }
-                        ],
+                        // filter: [
+                        //     {
+                        //         operator: 'greaterThanOrEqual',
+                        //         value: getWeekStartDate(),
+                        //         objectParameterKey: 'from_date_time'
+                        //     },
+                        //     {
+                        //         operator: 'lessThanOrEqual',
+                        //         value: getWeekEndDate(),
+                        //         objectParameterKey: 'from_date_time'
+                        //     }
+                        // ],
                         sort: [{ sortDirection: 'ascending', objectParameterKey: 'from_date_time' }]
                     })
                 });
