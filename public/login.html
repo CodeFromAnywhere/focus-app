@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus App - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #1a202c;
+            color: #e2e8f0;
+        }
+
+        .loader {
+            border-top-color: #3498db;
+            -webkit-animation: spinner 1.5s linear infinite;
+            animation: spinner 1.5s linear infinite;
+        }
+
+        @-webkit-keyframes spinner {
+            0% {
+                -webkit-transform: rotate(0deg);
+            }
+
+            100% {
+                -webkit-transform: rotate(360deg);
+            }
+        }
+
+        @keyframes spinner {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-gray-900 text-gray-100 flex flex-col">
+    <div id="loader"
+        class="fixed top-0 left-0 right-0 bottom-0 w-full h-screen z-50 overflow-hidden bg-gray-900 flex flex-col items-center justify-center">
+        <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
+        <h2 class="text-center text-white text-xl font-semibold">Loading...</h2>
+        <p class="w-1/3 text-center text-white">This may take a few seconds, please don't close this page.</p>
+    </div>
+
+    <div id="login-container" class="flex-grow container mx-auto px-4 py-8 flex items-center justify-center hidden">
+        <div class="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md">
+            <h2 class="text-3xl font-bold mb-6 text-center text-blue-400">Focus App Login</h2>
+            <p id="error-message" class="text-red-500 mb-4 text-center hidden"></p>
+            <p class="text-center mb-6">You're being redirected to the authentication server. If nothing happens, click
+                the button below:</p>
+            <button id="login-button"
+                class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition duration-300">
+                Login
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const authServer = 'https://auth.actionschema.com';
+        const redirectPage = 'app.html';
+        const clientId = 'URyqmUMtFGLrqYDH';
+
+        function showLoader() {
+            document.getElementById('loader').classList.remove('hidden');
+            document.getElementById('login-container').classList.add('hidden');
+        }
+
+        function hideLoader() {
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('login-container').classList.remove('hidden');
+        }
+
+        function showError(message) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = message;
+            errorElement.classList.remove('hidden');
+        }
+
+        async function exchangeCode(code) {
+            showLoader();
+            const formData = new FormData();
+            formData.append('code', code);
+
+            try {
+                const response = await fetch(`${authServer}/client/exchangeCode`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to exchange code');
+                }
+
+                const data = await response.json();
+                localStorage.setItem('authToken', data.access_token);
+                window.location.href = redirectPage;
+            } catch (error) {
+                hideLoader();
+                showError('Authentication failed. Please try again.');
+            }
+        }
+
+        function redirectToAuth() {
+            window.location.href = `${authServer}/client/authorize?client_id=${clientId}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+
+            if (code) {
+                exchangeCode(code);
+            } else if (localStorage.getItem('authToken')) {
+                window.location.href = redirectPage;
+            } else {
+                hideLoader();
+                document.getElementById('login-button').addEventListener('click', redirectToAuth);
+            }
+        });
+    </script>
+</body>
+
+</html>

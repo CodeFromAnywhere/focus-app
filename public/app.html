@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus App Calendar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #1a202c;
+            color: #e2e8f0;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-gray-900 text-gray-100">
+    <div id="app" class="container mx-auto p-4">
+        <h1 class="text-3xl font-bold mb-6 text-blue-400">Focus App Calendar</h1>
+        <div id="loading" class="hidden">
+            <div class="flex justify-center items-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            </div>
+        </div>
+        <div id="content" class="space-y-6">
+            <form id="taskForm" class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h2 class="text-xl font-semibold mb-4 text-blue-300">Add New Task</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="date" class="block text-sm font-medium text-gray-400">Date</label>
+                        <input type="date" id="date" name="date" required
+                            class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                    </div>
+                    <div>
+                        <label for="startTime" class="block text-sm font-medium text-gray-400">Start Time</label>
+                        <input type="time" id="startTime" name="startTime" required
+                            class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                    </div>
+                    <div>
+                        <label for="endTime" class="block text-sm font-medium text-gray-400">End Time</label>
+                        <input type="time" id="endTime" name="endTime" required
+                            class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                    </div>
+                    <div>
+                        <label for="task" class="block text-sm font-medium text-gray-400">Task</label>
+                        <input type="text" id="task" name="task" required
+                            class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                    </div>
+                </div>
+                <button type="submit"
+                    class="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">Add
+                    Task</button>
+            </form>
+            <div id="weekInfo" class="text-lg font-semibold text-blue-300"></div>
+            <div id="taskList" class="space-y-4"></div>
+            <div id="totalDeepWork" class="text-xl font-bold text-blue-400 mt-6"></div>
+        </div>
+        <button id="logoutBtn"
+            class="mt-8 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">Logout</button>
+    </div>
+
+    <script>
+        const API_URL = 'https://data.actionschema.com';
+        const authToken = localStorage.getItem('authToken');
+
+        if (!authToken) {
+            window.location.href = '/';
+        }
+
+        const loading = document.getElementById('loading');
+        const content = document.getElementById('content');
+        const taskForm = document.getElementById('taskForm');
+        const taskList = document.getElementById('taskList');
+        const weekInfo = document.getElementById('weekInfo');
+        const totalDeepWork = document.getElementById('totalDeepWork');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        function showLoading() {
+            loading.classList.remove('hidden');
+            content.classList.add('hidden');
+        }
+
+        function hideLoading() {
+            loading.classList.add('hidden');
+            content.classList.remove('hidden');
+        }
+
+        async function fetchTasks() {
+            showLoading();
+            try {
+                const response = await fetch(`${API_URL}/focus_app_calendar/read`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        filter: [
+                            {
+                                operator: 'greaterThanOrEqual',
+                                value: getWeekStartDate(),
+                                objectParameterKey: 'from_date_time'
+                            },
+                            {
+                                operator: 'lessThanOrEqual',
+                                value: getWeekEndDate(),
+                                objectParameterKey: 'from_date_time'
+                            }
+                        ],
+                        sort: [{ sortDirection: 'ascending', objectParameterKey: 'from_date_time' }]
+                    })
+                });
+                const data = await response.json();
+                if (data.isSuccessful) {
+                    renderTasks(Object.values(data.items));
+                } else {
+                    console.error('Failed to fetch tasks:', data.message);
+                }
+            } catch (error) {
+                console.error('Error fetching tasks:', error);
+            }
+            hideLoading();
+        }
+
+        function renderTasks(tasks) {
+            taskList.innerHTML = '';
+            let totalMinutes = 0;
+            tasks.forEach(task => {
+                const card = document.createElement('div');
+                card.className = 'bg-gray-800 p-4 rounded-lg shadow';
+                const startTime = new Date(task.from_date_time);
+                const endTime = new Date(task.end_date_time);
+                card.innerHTML = `
+                    <h3 class="text-lg font-semibold">${task.task}</h3>
+                    <p>Date: ${startTime.toLocaleDateString()}</p>
+                    <p>Time: ${startTime.toLocaleTimeString()} - ${endTime.toLocaleTimeString()}</p>
+                    <p>Duration: ${task.total_minutes} minutes</p>
+                    <p>Status: <span class="status">${task.status}</span></p>
+                    <button class="statusBtn mt-2 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50" data-id="${task.id}" data-status="${task.status}">
+                        ${task.status === 'done' ? 'Mark as Failed' : 'Mark as Done'}
+                    </button>
+                `;
+                taskList.appendChild(card);
+                if (task.status === 'done') {
+                    totalMinutes += task.total_minutes;
+                }
+            });
+            totalDeepWork.textContent = `Total Deep Work: ${totalMinutes} minutes`;
+            attachStatusListeners();
+        }
+
+        function attachStatusListeners() {
+            document.querySelectorAll('.statusBtn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = e.target.dataset.id;
+                    const currentStatus = e.target.dataset.status;
+                    const newStatus = currentStatus === 'done' ? 'failed' : 'done';
+                    await updateTaskStatus(id, newStatus);
+                });
+            });
+        }
+
+        async function updateTaskStatus(id, status) {
+            showLoading();
+            try {
+                const response = await fetch(`${API_URL}/focus_app_calendar/update`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        id: id,
+                        partialItem: { status: status }
+                    })
+                });
+                const data = await response.json();
+                if (data.isSuccessful) {
+                    await fetchTasks();
+                } else {
+                    console.error('Failed to update task status:', data.message);
+                }
+            } catch (error) {
+                console.error('Error updating task status:', error);
+            }
+            hideLoading();
+        }
+
+        taskForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            showLoading();
+            const formData = new FormData(taskForm);
+            const startDateTime = new Date(`${formData.get('date')}T${formData.get('startTime')}`);
+            const endDateTime = new Date(`${formData.get('date')}T${formData.get('endTime')}`);
+            const totalMinutes = Math.round((endDateTime - startDateTime) / 60000);
+
+            try {
+                const response = await fetch(`${API_URL}/focus_app_calendar/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        items: [{
+                            from_date_time: startDateTime.toISOString(),
+                            end_date_time: endDateTime.toISOString(),
+                            total_minutes: totalMinutes,
+                            status: 'failed',
+                            task: formData.get('task'),
+                            notes: ''
+                        }]
+                    })
+                });
+                const data = await response.json();
+                if (data.isSuccessful) {
+                    taskForm.reset();
+                    await fetchTasks();
+                } else {
+                    console.error('Failed to add task:', data.message);
+                }
+            } catch (error) {
+                console.error('Error adding task:', error);
+            }
+            hideLoading();
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('authToken');
+            window.location.href = '/';
+        });
+
+        function getWeekStartDate() {
+            const now = new Date();
+            const dayOfWeek = now.getDay();
+            const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+            return new Date(now.setDate(diff)).toISOString().split('T')[0];
+        }
+
+        function getWeekEndDate() {
+            const startDate = new Date(getWeekStartDate());
+            const endDate = new Date(startDate);
+            endDate.setDate(endDate.getDate() + 6);
+            return endDate.toISOString().split('T')[0];
+        }
+
+        function updateWeekInfo() {
+            const now = new Date();
+            const startOfYear = new Date(now.getFullYear(), 0, 1);
+            const weekNumber = Math.ceil((((now - startOfYear) / 86400000) + startOfYear.getDay() + 1) / 7);
+            weekInfo.textContent = `Current Week: ${weekNumber}`;
+        }
+
+        updateWeekInfo();
+        fetchTasks();
+    </script>
+</body>
+
+</html>

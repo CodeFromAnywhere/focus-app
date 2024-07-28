@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus App - Boost Your Productivity</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #1a202c;
+            color: #e2e8f0;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-gray-900 text-gray-100 flex flex-col">
+    <header class="bg-gray-800 py-4">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-blue-400">Focus App</h1>
+            <nav>
+                <a href="#features" class="text-gray-300 hover:text-white mx-2">Features</a>
+                <a href="#pricing" class="text-gray-300 hover:text-white mx-2">Pricing</a>
+                <a href="login.html"
+                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-300">Login</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <section class="text-center mb-16">
+            <h2 class="text-4xl font-bold mb-4">Maximize Your Productivity with Focus App</h2>
+            <p class="text-xl mb-8">Track your deep work, boost your efficiency, and achieve your goals.</p>
+            <a href="login.html"
+                class="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition duration-300">Get
+                Started Now</a>
+        </section>
+
+        <section id="features" class="mb-16">
+            <h3 class="text-2xl font-bold mb-6 text-center text-blue-300">Key Features</h3>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                    <h4 class="text-xl font-semibold mb-3">Task Management</h4>
+                    <p>Easily add, track, and manage your tasks with our intuitive calendar interface.</p>
+                </div>
+                <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                    <h4 class="text-xl font-semibold mb-3">Deep Work Tracking</h4>
+                    <p>Monitor your focused work sessions and see your productivity improve over time.</p>
+                </div>
+                <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                    <h4 class="text-xl font-semibold mb-3">Progress Insights</h4>
+                    <p>Get valuable insights into your work patterns and optimize your productivity.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="pricing" class="text-center">
+            <h3 class="text-2xl font-bold mb-6 text-blue-300">Simple Pricing</h3>
+            <div class="bg-gray-800 p-8 rounded-lg shadow-lg inline-block">
+                <h4 class="text-2xl font-semibold mb-4">Pro Plan</h4>
+                <p class="text-4xl font-bold mb-4">$9.99<span class="text-xl font-normal">/month</span></p>
+                <ul class="text-left mb-6">
+                    <li class="mb-2">✓ Unlimited task tracking</li>
+                    <li class="mb-2">✓ Advanced productivity analytics</li>
+                    <li class="mb-2">✓ Priority support</li>
+                </ul>
+                <a href="login.html"
+                    class="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition duration-300 inline-block">Start
+                    Free Trial</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 py-4 mt-16">
+        <div class="container mx-auto px-4 text-center text-gray-400">
+            &copy; 2024 Focus App. All rights reserved.
+        </div>
+    </footer>
+</body>
+
+</html>
